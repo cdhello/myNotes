@@ -1,0 +1,73 @@
+acl
+硬件
+NP或BCM芯片负责处理转发，Tcam用来处理ACL
+
+报文在转发芯片处理时，有一个描述符，所有报文的特征都会提取在里面。S/D IP MAC， 长度 Port InoutPort Vlan等，其中有ACL位（可能是分出入）。
+LIF表中有相应的ACL位开关，如果该位置1，报文描述符中的ACL就会置1。
+Tcam需要下发Key mask result。要关注的位mask置1，key置成需要命中的值，result里放命中后的Action。ACL key和MASK永远置1。所有报文都需要查找TCam中的ACL表，而只有描述符中ACL置1，才可能命中。本质上与其他位没有区别，但却在逻辑上起到了一个总开关的作用。
+Action支持permit deny counting car mirror(intf or cpu) redirect（nexthop or cpu or intf） cbq primap等等。以及2nd查找（仅入方向支持）。
+
+ACL查找时，命中一个就结束。当然result里有二次查找时会重新来找。
+
+需求上是MQC 、PacketFilter、PBR、COMMON ACL。前三者是用户配置，平台下发到驱动；后者是其他模块按自己需要下ACL处理报文，如DHCP报文就是使用CommonACL实现协议上送CPU的。（但大多数的协议报文是通过一个“协议端口表”上送的，并非CommonACL）
+上述2次查找，仅在Filter及部分COMMON ACL后才支持。
+
+MQC从配置上说，是qos Policy包含若干CB对(支持8K)，C是流分类，B是流动作；流分类有And型和or型，里面可配置多个ifmatch 特征（如IP）or ACL group；对于ACL，每个Group下有多个Rule（支持10K）。流动作B支持上面的ACtion，同一个动作B可叠加多个action。
+PacketFilter，配置方法是Packet fileter ACL GROUPNUM in/out。Group与MQC的类似，不同的是会处理rule里配置的counting。 
+PBR（策略路由）支持重定向到下一跳or VPN or 接口。
+
+可以下发在接口，Vlan，全局，均支持出入方向。
+
+平台是统一的，但因为硬件不同，不同的产品会有不同的支持情况。比如有的芯片是先做deny再做counting，那使用这种芯片的设备就不能下发。
+
+驱动要应对平台的增删改查，所以需要自己保存一定信息。
+
+实现上，三种下发对象，intf，vlan，global。intf和Vlan各用一个AVL树容器里管理，Global就是全局变量。
+每个下发对象的每个下发方向上，可以挂一个Policy节点，Policy节点下面class节点，class节点是ifmatch节点，ifmatch节点下面是ACL rule节点，Rule节点下面是Entry节点。Entry节点上保存的是Tcam的索引，可能也有解析好的Key MASK Result
+
+实现上，不同业务会有一些差异
+对于MQC使用了ifmatch ACL Group的流分类，上述几种节点都存在。但ifmach直接加IP地址这种，ifmatch节点下面就是Entry节点
+包过滤和commonacl，没有class节点。
+每种应用都定义一套节点的操作方法，如GetSubTreeNodeType这种（这个操作就可以实现在挂树的时候上述的差异）。
+
+下发过程就是解析ACL 解析动作。解析ACL较复杂，如果class类型是and的，还要把各Ifmatch合并；如果匹配了多个Vlan，也要尝试合并，争取下最可能少的表项。下发时依次填充各种节点，最后调Tcam接口写Tcam。
+动作解析应该是进行动作冲突判断，动作资源充足判断等等。MQC的动作保存在Class节点上。包过滤的动作保存在Rule节点上。common ACL的动作保存在Ifmatch节点上。
+因为上面提到每次命中就结束，因此表项的先后顺序很重要。一定要按配置的顺序来。同级别节点上要保证顺序，最后的Entry节点对应的表项也要保证顺序。
+
+如果是下发对象上首个ACL应用，要把对象对应的lif表上ACL位置1.
+普通接口，相应接口的lif表置ACL；聚合口，所有成员接口置ACL；Vlan所有成员接口置ACL；全局，所有接口都置ACL。
+聚合口有变化时 接口组会往一个约定的队列里写消息 qacl起了个内核线程去读然后刷新obj同时修改相应开关
+
+
+
+
+
+还做过一个特殊一些的ACL应用。就是COPP，配置在控制面上。下发的硬件表项在转发芯片和CPU之间的交换芯片上。可以控制协议报文的队列，做限速做counting。
+
+       --------------------|      |---------------------
+       |                   |      |                    |
+       |                   |      |                    |
+       |                   |      |                    |
++------|-----+          +--|------|--+           +-----|------+
+|      |     |          |  |      |  |           |     |      |
+|      |     |          |  |      |  |           |     |      |
+|      |     |          |  |      |  |           |     |      |
+|      |     |          |  |      |  |           |     |      |
+|      |     |          |  |      |  |           |     |      |
+|      |     |          |  |      |  |           |     |      |
++------|-----+          +--|------|--+           +-----|------+
+       |                   |      |                    |
+       |                   |      |                    |
+       |                   |      |                    |
+       |                   |      |                    |
+
+
+
+
+常见问题
+1表项下错，比如匹配IP报文，在Eth上，IP协议号为0x0800，在PPP上，IP协议号为0x0021。
+或者第一次查找后，action中未将2nd查找写1
+或者在与其他功能配合时出错，比如接口加入退出聚合口，相应接口的ACL是否打开
+2微码错误或者限制，结果是修改微码或者列限制。比如deny后还能不能做counting/car
+3软件数据管理错误。比如大规格下发，配合增删改查，链表错误等等。
+

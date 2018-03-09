@@ -1,0 +1,94 @@
+https://docs.docker.com/engine/reference/commandline
+1
+docker create 创建container。create的参数与run基本一样，run的参数只多一个--sig-proxy。 --name XXX 如果起了名字XXX，后面所有操作既可以使用名字，也可用使用ID，否则只能使用ID
+docker start 启动create出来的container
+docker run 相当于create+start。 -p host_port:container_port  -v host_path:container_path -it 跑起来进入命令行 --rm 结束后自动删除
+docker stop 停止container
+docker restart 重启
+docker ps查看container，不加参数只显示运行状态的，加个-a显示所有
+docker rm删除 container
+docker exec -it container bash 进入一个正在运行的container 的bash
+docker update 对于已经创建的container，可以用这个命令更改部分create或run时加的参数。
+
+
+2
+docker pull 下载镜像。如果没有进行pull，docker create/run会先下载
+docker images 查看镜像
+docker history image-name/id  查看镜像构建历史
+docker rmi 删除镜像
+
+3
+docker inspect 可以inspect所有Docker Objects，比如对于container会显示volume等
+
+
+sudo docker run -it --rm busybox
+
+容器生态系统 - 每天5分钟玩转容器技术（2） https://www.cnblogs.com/CloudMan6/p/6706546.html
+
+容器规范
+Docker是容器的一种，其他的还有CoreOS 的 rkt等。为了相互兼容，Docker，CoreOS，Google等公司成立一个OCI（Open Container Initiative）组织，制订规范。到文章发布时，有两个规范runtime spec 和 image format spec。
+
+
+root fs介绍
+http://www.linfo.org/root_filesystem.html
+
+
+
+运行第一个容器 - 每天5分钟玩转容器技术（4）
+https://www.cnblogs.com/CloudMan6/p/6727146.html
+
+sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo apt-get update
+sudo apt-get install docker-ce
+
+curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://f1361db2.m.daocloud.io
+加速以后，重启服务
+ systemctl restart docker.service
+
+
+ 
+sudo docker run -d -p 8080:80 httpd  
+-p是端口映射，8080是host端口，80是容器的端口。因为我执行这个时，host跑了一个别的http服务，所以如果80:80会因为冲突而失败
+-d是起来后detach，后台运行
+
+sudo docker ps 显示运行的容器，加个-a可以显示已经退出的容器，停止的可以再用sudo docker start 弄起来
+sudo docker stop id 停止运行的容器，id只输入几位就可以
+
+sudo docker rm 将容器删除
+
+sudo docker ps -a | grep Exited | awk '{print $1}' | xargs sudo docker rm
+
+
+sudo docker images查看镜像
+
+
+-v /home/nas/nextcloud_dir:/var/www/html/data
+
+
+sudo docker run -d --network=host -v /home/nas/nextcloud_dir:/var/www/html/data nextcloud
+
+nas_admin
+cdh123456
+
+mysql/MariaDB
+root
+123456
+local host 默认
+
+ sudo docker exec -it 9bf84 bash
+
+-v /home/nas/mysql_dir:/var/lib/mysql
+
+sudo docker run -d --network=host -e MYSQL_ROOT_PASSWORD=123456 -v /home/nas/mysql_dir:/var/lib/mysql mysql 最新的用8，
+
+sudo docker run -d --network=host -e MYSQL_ROOT_PASSWORD=123456 -v /home/nas/mysql_dir:/var/lib/mysql mysql:5  最新的用8，
+
+
+sudo docker run -d --network=host -e MYSQL_ROOT_PASSWORD=123456 -v /var/fpwork/mysql_db:/var/lib/mysql mysql:5
+
+sudo docker run -d --network=host -v /var/fpwork/nextcloud_dir:/var/www/html/data nextcloud
+
+
+

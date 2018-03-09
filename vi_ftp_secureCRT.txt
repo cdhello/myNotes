@@ -1,0 +1,51 @@
+vi secureCRT ftp
+
+vi
+命令模式，编辑模式
+命令模式
+任何状态下ESC可以进入命令模式，命令模式下HJKL是光标移动控制键
+:q退出，:w保存，:wq保存并退出，:q!,强制退出（如果有未保存修改，会提示未写入，用这个可强制退出）
+0到行首，^到本行第一个非空字符，$到行尾
+w、e下一个单词（单词头或尾），b前一个单词头
+/向前查找，？向后查找，输入要查找的关键字后回车就跳到第一个要找的关键字，再按n下一个，N前一个
+u撤销修改，Ctrl+r再恢复修改（redo），对应于Win下的Ctrl+z和Ctrl+y
+v，选中。V，行选中。 Ctrl+v，列选中。这三个命令后，均使用方向键控制选择范围
+选中以后，y可以复制到剪切板，非选中yy复制当前一行。（y指yank）
+选中以后可以按d来delete，dd删除当前一行
+p和P分别在光标后或前粘贴
+编辑模式
+i在当前光标前开始输入，I在当前行最前开始输入
+a在当前光标后开始输入，A在当前行最后开始输入
+o、O在当前行后/前新建一行开始输入
+set number/nu显示行号，set nonumber/nonu 关闭行号
+直接在命令模式下输入数字跳到指定行
+
+m a 添加个书签a, ` a跳到书签a
+help mark
+help fold zozd
+
+
+
+
+ftp
+windows资源管理器登录FTP  ftp://usr:pwd@ip
+cmd line登录ftp时，dir，cd可进行针对server的控制
+lcd是控制本地目录。
+前面加个!可以执行本地的系统命令。如在linux上可以!ls, !pwd等等。如此!cd等效于lcd。
+
+SecureCRT
+Alt+enter            全屏及恢复
+Ctrl+A  <-> Ctrl+E   光标到行首行尾
+Ctrl+B  <-> Ctrl+F   光标前移后移，等同于←和→
+Ctrl+D  <-> Ctrl+H   光标前删后删，等同于delete和backspace
+Ctrl+P  <-> Ctrl+N   前翻后翻，等同于↑和↓
+Ctrl+M  ==  Ctrl+J   等同于回车
+Ctrl+W <-> Ctrl+k ，Ctrl+U  删除光标前、后、本行
+
+
+
+
+
+
+
+

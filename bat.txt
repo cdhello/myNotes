@@ -1,0 +1,82 @@
+bat
+rem 只打印不执行
+::这个仅是注释
+@echo hello,windows
+::exit
+::echo 【按任意键退出】
+pause
+######################
+Route add 60.232.142.40 mask 255.255.255.248 192.168.100.250   目的，掩码，下一跳
+Route delete 60.232.142.40                                     删除路由
+
+type 相当于shell里的cat
+
+shutdown -r -t 0 立即重启
+shutdown -s -f
+合并文本文件
+在“命令提示符”窗口中，使用CD命令进入文件所在的文件夹, 输入“Copy *.txt book.txt”命令
+
+Windows使能关闭IP转发：
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\ Services\Tcpip\Parameters选择下面的项目：IPEnableRouter，为1使能，为0关闭。
+
+
+
+findstr /c:"cellParameters not found,seq" *.*  可以搜索当前目录下包含MACHS的文件
+
+FINDSTR [/B] [/E] [/L] [/R] [/S] [/I] [/X] [/V] [/N] [/M] [/O] [/F:file][/C:string] [/G:file] [/D:dir list] [/A:color attributes] [/OFF[LINE]]strings [[drive:][path]filename[ ...]]
+参数
+/B 在一行的开始配对模式。
+/E 在一行的结尾配对模式。
+/L 按字使用搜索字符串。
+/R 将搜索字符串作为一般表达式使用。
+/S 在当前目录和所有子目录中搜索匹配文件。
+/I 指定搜索不分大小写。
+/X 打印完全匹配的行。
+/V 只打印不包含匹配的行。
+/N 在匹配的每行前打印行数。
+/M 如果文件含有匹配项，只打印其文件名。
+/O 在每个匹配行前打印字符偏移量。
+/P 忽略有不可打印字符的文件。
+/OFF[LINE] 不跳过带有脱机属性集的文件。
+/A:attr 指定有十六进位数字的颜色属性。请见 "color /?"
+/F:file 从指定文件读文件列表 (/ 代表控制台)。
+/C:string 使用指定字符串作为文字搜索字符串。
+/G:file 从指定的文件获得搜索字符串。 (/ 代表控制台)。
+/D:dir 查找以分号为分隔符的目录列表　strings 要查找的文字。
+[drive:][path]filename　指定要查找的文件。除非参数有 /C 前缀，请使用空格隔开搜索字符串。
+例如: 'FINDSTR "hello there" x.y' 在文件 x.y 中寻找 "hello" 或"there" 。 'FINDSTR /C:"hello there" x.y' 文件 x.y 寻找"hello there"。
+一般表达式的快速参考:
+. 通配符: 任何字符
+* 重复: 以前字符或类别出现零或零以上次数
+^ 行位置: 行的开始
+$ 行位置: 行的终点
+[class] 字符类别: 任何在字符集中的字符
+[^class] 补字符类别: 任何不在字符集中的字符
+[x-y] 范围: 在指定范围内的任何字符
+\x Escape: 元字符 x 的文字用法
+\<xyz 字位置: 字的开始
+xyz\> 字位置: 字的结束
+有关 FINDSTR 常见表达法的详细情况，请见联机命令参考。
+
+
+
+subst D: C:\DISK_D  把C:\DISK_D映射为D盘
+subst D: /D 删除D映射盘
+
+net use X: \\10.140.163.115\atfer  把\\10.140.163.115\atfer映射为X盘
+net use X: /D 删除X映射盘
+
+
+if exist D:\ (      如果D盘存在
+  subst D: /D           删除D盘
+ )
+
+
+set是对参数的定义，动态的话需要加上/p的条件，“=”后面的内容便是对这个参数的描述，在用户需要输入值得时候提示用户。
+
+set /p a=请输入a:
+echo %a%   
+pause>nul  
+
+
+certutil -hashfile filename MD5计算该文件的MD5序列。linux的命令为md5sum filename 

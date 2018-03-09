@@ -1,0 +1,202 @@
+shell
+1 变量赋值，类型  $ `` () [] {}
+2 表达式：算术表达式，逻辑表达式
+3 判断表达式，相等，不等，大于，小于
+4 控制语句  if for while switch
+5 函数
+6  工具和概念 cd rm cp mv pwd ls cat more chmod 管道 重定向
+  rep xargs find awk cut sed sort ln du df (xxd "man ascii")
+查看系统Log dmesg
+
+在shell脚本中打印行号
+echo $LINENO
+
+mkdir -p   递归创建文件夹
+
+1 变量赋值
+等号赋值，不能有空格
+$n        $1 the first parameter,$2 the second...
+$#        The number of command-line parameters.
+$0        The name of current program.
+$?        Last command or function's return value.
+$$        The program's PID.
+$!        Last program's PID.
+$@        Save all the parameters.
+$*        all of the para trans in the bash, with "", and saparated by space, with
+
+2 if else和大小比较
+echo 1
+# if the previous cmd exct ok
+if [ $? -eq 0 ]
+then
+echo 1
+else
+echo 2
+fi
+-eq 相等（equal）
+-ne 不等（not equal）
+-gt 大于（greater than）
+-lt 小于（less than）
+-ge 大于等于 （greater than or equal）
+-le 小于等于 （less than or equal）
+
+split xxx.log  -C 300m  以300m分割xxx.log，同时尽量保持行完事性
+
+grep  -i忽略大小写，-v 不包含什么  ^xxx, 以xxx为开头  xxx$,以xxx为结尾  'xxx\|yyy',xxx或yyy -n显示行号，grep -E "FSP-12|0x12"也是或。-o只输出匹配到的部分，否则匹配到后输出整行
+
+mount -t cifs -o username=dongcao,password=Cdhrrrr.,nounix,noserverino //10.140.62.89/work /mnt/smb 
+ifconfig eth0 10.140.163.111/24
+挂载windows共享的文件夹  umount -fl /mnt/smb 强制umount
+
+find -maxdepth 最深查找层次，为1时就是查找当前目录
+    -name "*.c" 查找所有.c文件，不加双引号有时会有问题
+    -print0 ，输出以NULL分隔
+     find ./wzq | xargs cat >> 1.txt 把wzq中所有的文件写到1.txt里去
+     find ./l1 -name '*.txt' -print0 | xargs -0 cat >> 2222.txt 把l1中所有的txt文件写到1.txt里去
+find .  \( -name "*.c"  -or  -name "*.h"  \) 找出C文件和H文件  
+xargs --null以NULL为分隔处理输入.比如依次处理每个文件，但文件名中有空格，就可以find输出时-print0，xargs再--null
+     -0是不是和前一个一样
+svn status | grep -e ^[M\!] | awk '{print $2}' | xargs svn revert ; svn up
+ls | xargs rm -rf ; svn up
+ps -ef | grep ^dongcao | grep -v grep | grep dsp_wn7.0_hsdpa_mt | awk '{print $2}' | xargs kill
+du  
+   du -hs /var/fpwork/*  查看/var/fpwork/中各项大小 -k KB显示，-m MB显示   -d 0 显示当前目录所占空间大小
+df -hl
+   查看磁盘使用情况   -h 以KB/MB/GB等方式显示，-l Local
+sort
+   sort -nr 以数值(默认是字典序)排序，由大到小（默认由小到大）
+wc -l lines -w words -m byte num,memory?
+scp core_6287 root@192.168.253.16:/tmp   把本地的core_6287拷贝到16的tmp目录下，用户名是root，然后提示输入密码
+                                        源或目的都可以是本地或远端。如果没有前面的root@，会提示用户名密码
+route add -net 192.168.255.0/24 gw 192.168.253.16 添加路由
+route del -net 192.168.255.0/24 gw 192.168.253.16 删除路由
+route add -host 100.100.100.100 gw 10.140.163.54  host，可以把掩码长度省掉了。
+
+tcpdump -i rio0m3 icmp -v    -i rio0m3抓取这个接口的包  -v 详细decode
+加个-w capt.cap 可以把内容保存到该文件，该文件可以用wireshark打开
+echo 1 > /proc/sys/net/ipv4/ip_forward                   #使能Linux报文转发
+echo 1 > /proc/sys/net/ipv4/conf/all/proxy_arp           #使能代理ARP。代理ARP简单来说就是，L3设备A收到ARP请求，只要请求IP是
+自己的可达地址，就回一个自己的MAC过去。请求者知道该MAC后，就解决了L2封装问题，于是就把报文以A的MAC做为DMAC发出。A当然收到该IP报文，然后就查路由表去做L3转发去了。PC网关可以不是自己的路由可达地址，这种配置才会有上面这种情况。
+PC的default gateway，可以设置成任意IP地址（不确定127.0.0.1这种环回地址可不可以），并且可以是自己IP。如果gateway是自己，那对于任何命中该默认路由的报文都会尝试直接发出。对于Ethnet，就会去发出对该IP的ARP请求。如果两个不同网段的PC直连，degault gateway设置为自己，就可以通信。Win7试验确实如此，linux据说有也人试过。
+
+重置网卡驱动以清空计数
+1. ethtool ethx 查看ethx的信息。使用 ethtool -i ethx 查看相关网卡的驱动信息。例如查找到驱动为 tg3。-i等效于--driver
+2.使用 modprobe -r tg3;mod
+probe tg3 可以快速地reload网卡驱动。
+3.ifup ethX
+4 mii-tool ethx 可以查看自协商以后实际运行的速度。ethtool ethx显示的是支持的最大速度。
+
+tar zcvf ccs-rt.tgz opt usr     把当前目录下的opt, usr添加到压缩文件ccs-rt.tgz。其中opt, usr都可以是文件夹
+tar zxvf ccs-rt.tgz                  把ccs-rt.tgz解压到当前文件夹
+tar xvf xxx.tar把该tar文件解包
+tar -Jxf  xxx.txz
+
+
+（月/日/年 时:分:秒）
+date -s "12/15/15 13:26"
+hwclock --set --date="12/15/15 13:26"
+设置了S位的可执行文件可以让所有用户以文件拥有者的身份执行该文件
+如果编程时使用了某些API，编译出来的可执行文件要超级用户才可以执行，比如raw socket。但是有些工具软件明明就是用这些API实现的却可以让所有用户使用，比如使用了raw socket的tcpdump(libpcap)。其实就是对习属于root的可执行文件设置了S位。
+用chmod指令来为文件设置强制位与冒险位。
+set uid：chmod u+s 文件名
+set gid：chmod g+s 文件名
+sticky：chmod o+t 文件名
+
+chmod go-wrx a.txt,  mod的三列为ugo，user，group，others，上述命令含意是删除g和o的一切权限。
+
+chown xxx file
+chgrp xxx file
+
+whereis 软件名来查找系统里的文件位置
+
+
+sed -n "2,5p" filename  打印2到5行
+
+sed -e '1,1d' aa.c 删除第一行
+sed -e '1,1p' aa.c 打印第一行
+sed -e '1,1p' -n aa.c 只打印第一行
+sed -e '/\/\*/,/\*\//p' -n aa.c 打印\*行到*\行
+sed -e 's/aaa/bbb/'  aa.c aaa替换成bbb
+sed -e 's/\/\*.*\*\///'  aa.c  /*xxxxxx*/替换成空,中间的.代表任意字符，.后的*代表任意个
+sed -e 's/\/\*.\{5\}\*\///'  aa.c 把/*xxxxx*/替换成空，/*和*/间有5个任意字符
+sed -e '/^\w*$/d' 删除所有只有tab和空格的行
+
+sed  -e 's/\/\*.*\*\///g'  -e 's/\/\/.*$//' | sed -e 's/\/\*/\n\/\*/'  -e 's/\*\//\*\/\n/'  | sed -e '/\/\*/,/\*\//d' -e '/^\s*$/d'
+
+sed 's/\r$//'  把每行的最后一个\r删除，功能应该等效于dos2unix
+
+第一个管道之前，是把单行注释替换成空
+第二个管道之前，是分别把多行注释的\*前和*\后加\n，让注释不和有效代码在同一行
+最后是删除/*到*/的行和空行
+sed  -e 's/\/\*[^\*\/]*\*\///g'  这样才正确，否则会把/*aaa*/ a=b; /*aaa*/这种删除。[^\*\/]是中间不要有*/，否则会最长匹配。g是在每一行匹配执行多次
+
+find . \( -name "*.c" \) -o \( -name "*.h" \) -o \( -name "*.cpp" \) -o \( -name "*.hpp" \)  |  xargs sed  -e 's/\/\*.*\*\///g'  -e 's/\/\/.*$//' | sed -e 's/\/\*/\n\/\*/'  -e 's/\*\//\*\/\n/'  | sed -e '/\/\*/,/\*\//d' -e '/^\s*$/d' | wc -l
+统计非空非注释
+
+
+
+DNS失效，可以手动添加host解析。 在/etc/hosts里添加"ip url"
+
+
+uptime，查看系统启动时间
+
+
+cat ccc 1>a.txt 2>b.txt   后面这两个重定向表示标准输出重定到a.txt,错误输出重定向到b.txt
+>/dev/null  2>&1   1重定向到/dev/null 2等同于1，也重向到1
+
+
+man 查看帮助时，里面的黑体词都可以查看，如果是stty(2), 这种形势，man 2 stty.
+数字区分不同地方的定义。比如sleep(1)是shell 里的sleep说明。而sleep(3)是C编程接口的介绍。
+
+
+shell 别名：
+alias cd2mydir="cd /var/fpwork/dongcao"  敲cd2mydir就会执行cd /var/fpwork/dongcao
+
+
+
+md5sum filename 计算该文件的MD5序列。windows 的命令为certutil -hashfile filename MD5
+
+上传到ftp上去
+curl  -T  5GL1SW.tgz ftp://atf5guser:atf5guser@10.140.32.35/Users/$USER/packagename/ --ftp-create-dirs
+注意最后这个“/”一定要有
+
+curl -u atf5guser:atf5guser -T 5GL1SW.tgz ftp://10.140.32.35/Users/$USER/packagename/ --ftp-create-dirs
+curl -u atf5guser:atf5guser -T r4package.sh ftp://10.140.14.179/Users/$USER/PACAGE_scripts/ --ftp-create-dirs 
+curl -u atf5guser:atf5guser -T get_releaseinf.sh ftp://10.140.14.179/Users/$USER/PACAGE_scripts/ --ftp-create-dirs
+
+curl -u atf5guser:atf5guser ftp://10.140.32.35/Users/$USER/packagename/5GL1SW.tgz -o xxx.tgz
+
+
+欧洲的服务器上下载这个文件1s几十MB
+wget http://releases.ubuntu.com/18.04.1/ubuntu-18.04.1-desktop-amd64.iso
+也可以下载ftp, wget ftp://atf5guser:atf5guser@10.140.32.35/Users/$USER/packagename/5GL1SW.tgz 
+
+
+https://blog.csdn.net/u013401853/article/details/54933188/ 非分区做一个限制大小的文件夹
+# 生成一个10M的文件
+
+dd if=/dev/zero of=disk.img bs=1M count=10
+
+# 把生成的文件虚拟为块设备 losetup: loopback device setup, set up and control loop devices. https://www.tldp.org/LDP/sag/html/dev-fs.html
+
+losetup /dev/loop0 disk.img
+
+# 格式化设备
+
+mkfs.ext4 /dev/loop0
+
+# 挂载
+mount disk.img testdir
+
+# 卸载
+
+umount testdit
+
+# 卸载loop设备与文件的关联
+
+losetup -d /dev/loop0
+
+
+LINUX disk-partitions tool
+https://www.binarytides.com/linux-command-check-disk-partitions/
+

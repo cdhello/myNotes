@@ -1,0 +1,20 @@
+VBoxManage.exe list vms 列出所有设备
+VBoxManage modifyvm ubuntu1404 --lptmode1 ParallelPort 添加一个并口，名字叫ParallelPort
+VBoxManage modifyvm ubuntu1404 --lpt1 0x3eb 5  设置刚才那个并口的端口地址为0x3eb，IRQ号码是5
+
+
+
+VBoxManage modifyvm u1 --lptmode1 ParPort
+VBoxManage modifyvm u1 --lpt1 0x378 5 
+
+
+不能为虚拟电脑 ubuntu1404 打开一个新任务.
+
+Parallel#0 could not open 'ParallelPort' (VERR_FILE_NOT_FOUND).
+
+Parallel device 0 cannot attach to host driver (VERR_FILE_NOT_FOUND).
+
+返回 代码:E_FAIL (0x80004005)
+组件:Console
+界面:IConsole {8ab7c520-2442-4b66-8d74-4ff1e195d2b6}
+

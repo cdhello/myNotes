@@ -1,0 +1,94 @@
+iptables
+
+ iptables -L 显示
+
+https://help.ubuntu.com/community/IptablesHowTo
+
+一张表示几条chain和table处理顺序的图，有的版本上，INPUT chain中在mangle和filter之间还有nat表
+http://www.adminsehow.com/wp-content/uploads/2011/09/packet_flow9.png
+http://www.adminsehow.com/2011/09/iptables-packet-traverse-map/
+
+一张2.4 kernel网络处理图
+http://open-source.arkoon.net/kernel/kernel_net.png
+http://linux-ip.net/html/adv-overview.html
+
+朱双印博客
+http://www.zsythink.net/archives/1199
+
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p tcp --dport ssh -j ACCEPT
+iptables -A INPUT -j DROP
+iptables -I INPUT 1 -i lo -j ACCEPT
+
+
+1 append一条INPUT 规则，使用conntrack（connect track） 模块的ctstate（Connection State）参数 来匹配ESTABLISHED,RELATED状态的报文，行为是通过
+2 append一条INPUT tcp dport是22的规则，行为是通过
+3 append一条INPUT规则，行为是丢弃
+4 在第1条规则之前插入一条INPUT规则，接口(-i，对应的是o)是lo，行为通过
+
+-A是append，加在最后
+-I是Insert，Insert到指定条目之前
+
+-j 行为，可以是ACCEPT，DROP，REJECT，LOG，DROP和REJECT的区别是前者直接丢，后者会通过ICMP报文通知源
+
+
+
+iptables -D INPUT -p tcp --dport ssh -j ACCEPT
+iptables -D INPUT -j DROP
+iptables -D INPUT  -i lo -j ACCEPT
+
+
+192.168.125.173
+iptables -A INPUT -j REJECT -s 192.168.125.69
+
+####################################下面是安装docker后，docker默认生成名字叫docker0的bridge时的filter表项。
+
+:~$  sudo iptables -vL --line-number -t  filter
+Chain INPUT (policy ACCEPT 1448 packets, 1713K bytes)
+num   pkts bytes target     prot opt in     out     source               destination         
+
+Chain FORWARD (policy DROP 0 packets, 0 bytes)
+num   pkts bytes target     prot opt in     out     source               destination         
+1        0     0 DOCKER-USER  all  --  any    any     anywhere             anywhere            
+2        0     0 DOCKER-ISOLATION-STAGE-1  all  --  any    any     anywhere             anywhere            
+3        0     0 ACCEPT     all  --  any    docker0  anywhere             anywhere             ctstate RELATED,ESTABLISHED
+4        0     0 DOCKER     all  --  any    docker0  anywhere             anywhere            
+5        0     0 ACCEPT     all  --  docker0 !docker0  anywhere             anywhere            
+6        0     0 ACCEPT     all  --  docker0 docker0  anywhere             anywhere            
+
+Chain OUTPUT (policy ACCEPT 1268 packets, 108K bytes)
+num   pkts bytes target     prot opt in     out     source               destination         
+
+Chain DOCKER (1 references)
+num   pkts bytes target     prot opt in     out     source               destination         
+
+Chain DOCKER-ISOLATION-STAGE-1 (1 references)
+num   pkts bytes target     prot opt in     out     source               destination         
+1        0     0 DOCKER-ISOLATION-STAGE-2  all  --  docker0 !docker0  anywhere             anywhere            
+2        0     0 RETURN     all  --  any    any     anywhere             anywhere            
+
+Chain DOCKER-ISOLATION-STAGE-2 (1 references)
+num   pkts bytes target     prot opt in     out     source               destination         
+1        0     0 DROP       all  --  any    docker0  anywhere             anywhere            
+2        0     0 RETURN     all  --  any    any     anywhere             anywhere            
+
+Chain DOCKER-USER (1 references)
+num   pkts bytes target     prot opt in     out     source               destination         
+1        0     0 RETURN     all  --  any    any     anywhere             anywhere  
+
+一、 filter表项包含三条原生链（chain），首先安装docker导致的新加docker0 bridge只会影响FORWARD链
+二、 这个例子中FORWARD链中的几条规则都是因为docker0新加的。
+三、 FORWARD rule 1, 匹配所有报文，进入自定义链DOCKER-USER，这个自定义链直接匹配所有报文返回。什么都不做，只是占个位置
+四、 FORWARD rule 2, 匹配所有报文，进入自定义链DOCKER-ISOLATION-STAGE-1。
+         自定义链DOCKER-ISOLATION-STAGE-1匹配从docker0来而不到docker1去的报文，进入DOCKER-ISOLATION-STAGE-2。每增加一个bridge，都会增加类似的一条规则让相应报文进入DOCKER-ISOLATION-STAGE-2
+	      DOCKER-ISOLATION-STAGE-2 匹配所有到docker0去的报文，丢弃。能命中这条规则的，肯定从非docker0出而不回原bridge的报文。从而实现bridge隔离。
+	                               剩下的选有报文，return回上级chain DOCKER-ISOLATION-STAGE-1继续处理
+	      剩下的选有报文，return回上级chain(也就是后面处理FORWARD的rule 3)继续处理
+五、FORWARD rule 3, 放行所有到docker0 bridge的满足ctstate RELATED,ESTABLISHED要求的报文。
+六、FORWARD rule 4, 剩下的所有到docker0的报文，全部到自定义链DOCKER。自定义chain DOCKER为空，什么都不做，继续处理
+七、FORWARD rule 5, 从docker0出不回到docker0的放行，因为四的原因，从docker0到另一个docker bridge的报文已经被掉了
+八、FORWARD rule 6, 从docker0又加到docker0的报文，放行。保证同一bridge的容器互通。对于ping报文，第一个icmp req发出来时，走的是rule6，但是后续的reply和request就都是走rule3了。
+九、FORWARD default police，DROP
+
+
+

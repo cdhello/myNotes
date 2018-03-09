@@ -1,0 +1,33 @@
+Gdb 可执行文件(需要 gcc -g)
+设置断点: b   xxxx.c:lineNum
+查看断点：info b
+删除断点： d b ID(不带ID为删除所有断点)
+开始执行：r run
+查看当前调用栈 : bt,  backtrace的简写   where full
+查看代码：list
+下一行：遇到函数跳过next，不跳过step，
+结束这个函数：fini
+继续：c
+打印一个变量： print   x
+x/2x 地址a 查看a的数据，两个，16进制显示
+watch 监控变量，有变化提示
+把一个变量设置为某值：print x=1, 设置为1
+回车重复前一条命令
+多进程调试(有fork使用的情况)
+http://blog.csdn.net/tedious/article/details/6224349
+对于MACHS的MT环境，MT运行时有四个进程模拟被测BTS，分别是RM，TUPSim，L1sim，PS
+启动代码放在MT代码包的hsdpa_mt_startup.c里
+
+
+
+
+可以attach进程号，来gdb已经在执行的文件。加上-ex cont的参数的话，attach上去不会打断进程执行，否则需要手动cont
+gdb attach 2816 -ex cont
+gdb attach $(pidof process_name) -ex cont
+
+-ex应该就是attach上去传给他的命令，如下就是attach上去watch某个变量再cotinue
+gdb attach 16584 -ex "watch u32Arr" -ex cont
+
+
+
+gdb调试可执行文件，传递参数 set args ARGXXX, 再run时，就会把ARGXXX传递给被调试的文件。

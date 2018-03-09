@@ -1,0 +1,102 @@
+命名空间：
+可以using多个namespace?
+有没有办法nousing? 貌似没有
+有没有default namespace 有，叫global namespace,在其他命名空间的作用域使用时::membername就可以。
+
+using声明，using指示
+前者是using 命名空间的一个成员，后者是导入某空间所有。
+
+__FUNCTION__或者__func__只有函数自己名字
+__PRETTY_FUNCTION__ 可以打出函数原型，不只是名字，连类名字也有
+
+public,private,protected以及在继承中的关系
+
+模版
+
+
+http://www.cplusplus.com/doc/tutorial/typecasting/
+
+
+类的成员函数分为：普通函数，虚函数，纯虚函数
+普通函数 ，父类要实现，子类也可以实现
+虚函数，前面加一个virtual关键字，父类有默认实现，子类可以重新实现它
+纯虚函数，前面加virtual关键字，父类没有函数体，有一个=0的标记，子类必须实现它
+
+这些是为了实现多态。多态的意思是，用一个基类的指针，指向不同子类的对象时，调用虚函数时，运行的是子类的函数实现。而如果用普通函数，运行的是父类的函数实现。
+含有纯虚函数的类叫做抽象类，抽象类不可以实例化为对象。
+
+
+
+C++11
+gcc 4.8.1及以后版本支持C++11,但编译时要指定 -std=c++11
+auto类型，lambda表达式是C++11特性。
+
+lambda表达式
+auto func1 = [](int i) { return i+4; };
+func1就形成了一个类似于函数指针的东西 int func(int i) {return i + 4;}
+
+前面的[]里也是放当前上下文的变量，既可以传值，也可以传引用。
+[a,&b] a变量以值的方式呗捕获，b以引用的方式被捕获。
+[this] 以值的方式捕获 this 指针。
+[&] 以引用的方式捕获所有的外部自动变量。
+[=] 以值的方式捕获所有的外部自动变量。
+[] 不捕获外部的任何变量。
+lambda的传值和传引用：传值，表达式函数不论在什么时候调用，都是取定义的时候值。而传引用，则取值为函数调用那一刻。
+
+    int for_lambda_value = 0;
+    int for_lambda_refer = 0;
+    auto func1 = [for_lambda_value,&for_lambda_refer](int i) 
+    { 
+        std::cout<<"for_lambda_value = "<<for_lambda_value<<std::endl;
+        std::cout<<"for_lambda_refer = "<<for_lambda_refer<<std::endl;
+        return i+4; 
+    };
+
+    std::cout << "func1: " << func1(6) << '\n'; 
+    for_lambda_value = 1;
+    for_lambda_refer = 1;
+    std::cout << "func1: " << func1(6) << '\n'; 
+    
+
+http://www.cnblogs.com/haippy/archive/2013/05/31/3111560.html
+
+boost::share_ptr
+
+这是一个类模版。实例化出来是一个类对象，该对象维护了一个new出来的指针，遵守他的使用规则实例化多个对象时，会自动进行计数，如果所有的对象都reset了，就会把那个指针给delete掉。不熟练还是有危险的，可能做过右值就会+1；
+
+该对象内建了一些操作方法use_count()，reset()等等，如果进行使用要用对象.操作。
+但它又重载了->操作，可以使用->来访问所维护指针指向的空间。
+boost官方文档：
+http://www.boost.org/doc/libs/1_64_0/libs/smart_ptr/smart_ptr.htm
+
+三篇blog讲解了shared_ptr, scoped_ptr和weak_ptr.
+http://www.cnblogs.com/TianFang/archive/2008/09/20/1294590.html
+
+
+
+boost::bind
+
+假设有一个int func1(int a);
+那么经过下面这句话后，func就形成了一个类似于函数指针的东西。
+auto func = bind(func1,_1); （auto 的这种用法是C++11的特性）
+
+func(10),就相当于func1(10)。
+func(20,10),就相当于func1(20)。注意，后一个参数忽略掉了。
+
+当然也可以直接在bind的时候使用
+bind(func1,_1)(10)，相当于func1(10)。
+
+
+加下划线是占位，就是说调用的时候的第几个参数。
+如果不加下划线，比如是个数字10
+auto func = bind(func1,10);
+那么func()或者func(100)....就都相当于func1(10),
+
+bind的函数可以是像上面这个普通函数，也可以是类成员函数，也可以是函数对象。
+
+
+std也有一个bind类似，大致相同，但有一些差别，其中理解的一个差别是std::bind对处理重载(overload)函数时有限制。
+
+
+移动构造函数
+

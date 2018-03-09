@@ -1,0 +1,13 @@
+1 放到/usr/src，使用tar –zxvf解压缩tar -zxvf linux-3.17.8.tar.gz
+2 切换到解压缩的目录/usr/src/linux-3.17.8。进入su
+  Ubuntu安装时没有指定root与口令，使用sudo passwd root来打开，这里设置好root的Pwd就可以su了。设置的pwd为123456。
+3 apt-get install libncurses-dev 安装下一步需要的lib库
+
+
+4 make menuconfig，生成配置文件使用默认的，直接Exit进下一个界面生成 .config
+ 
+5 敲make，编译，很久很久 我了个去8、9个小时
+6 make modules ，编译模块。 有Warning
+7 make modules_install  安装模块（模块拷贝到需要的目录中）
+8 make install  安装内核（完成内核的安装（会复制内核至标准位置/boot..）相应的grub文件也会做更改）还是有warning
+9 reboot 重启计算机，就是新内核了（启动时有错误）

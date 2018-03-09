@@ -1,0 +1,75 @@
+sudo docker run  --name smb1 -it --network=host -v /var/fpwork/HDDisk:/var/fpwork/HDDisk -d dperson/samba \
+            -u "ad;123456" \
+            -u "kid;abcdef" \
+            -S \
+            -s "ad_dir;/var/fpwork/HDDisk/VM_WIN7_EXCHANGE;yes;yes;no;ad" \
+	    -s "kid_dir;/var/fpwork/HDDisk/aria2_downloads;yes;yes;no;kid" 
+以上可以oplayer访问指定文件夹。试着把硬盘根目录（或者是mount的根目录？）-v 映射进容器，但oplayer访问文件夹提示网络错误
+
+
+不加-S，要求client最小smb版本是SMB2。加了这个选项以后，容器里的smb.conf就没有下面三行了。
+   client ipc min protocol = default
+   client min protocol = CORE
+   server min protocol = SMB2
+oplayer也需要这个选项，它应该只支持smb1。
+
+三个yes/no组合分别为browser able，read only, guest ok.默认为yes，yes，yes
+
+
+
+创建以后也可以更改参数，再重启就生效
+sudo docker exec -it smb1 samba.sh -s "public;/var/fpwork/video/kid;yes;no;yes"
+sudo docker restart smb1
+但好像不能修改已经share的文件夹。
+
+################################################################################################################### for win10
+
+sudo docker run  --name pub_smb -it --network=host -v /var/fpwork/HDDisk:/var/fpwork/HDDisk -d dperson/samba \
+            -S \
+	    -s "public;/var/fpwork/HDDisk;yes;no;yes"
+
+sudo docker exec -it pub_smb bash 进入到container的命令行
+vi /etc/samba/smb.conf
+把client/server端的samba版本改成NT1
+   client max protocol = NT1 
+   server max protocol = NT1
+sudo docker restart pub_smb
+
+此时还只可以读。很奇怪，像上面建两个用户，再分配专门的共享文件夹，公司的win10就不能匿名访问这个public
+
+然后再把宿主机的/var/fpwork/video/kid和容器内的/var/fpwork/video/kid都chmod为777，就可写了
+
+ -W   Allow access wide symbolic links  用户是否可访问共享文件夹中的链接
+https://www.samba.org/samba/docs/using_samba/ch08.html#samba2-CHP-8-TABLE-1
+If set to yes, will follow symbolic links outside the share.
+
+###############################################20190715
+试下-s 下的[users] 和-W
+ -s "<name;>[;browse;readonly;guest;users;admins;writelist;comment]"
+                Configure a share
+                required arg: "<name>;</name></name;></path>"
+                <name> is how it's called for clients
+                <path> path to share
+                NOTE: for the default values, just leave blank
+                [browsable] default:'yes' or 'no'
+                [readonly] default:'yes' or 'no'
+                [guest] allowed default:'yes' or 'no'
+                NOTE: for user lists below, usernames are separated by ','
+                [users] allowed default:'all' or list of allowed users             是否用户可见？
+                [admins] allowed default:'none' or list of admin users
+                [writelist] list of users that can write to a RO share
+                [comment] description of share
+
+
+
+https://www.samba.org/samba/docs/using_samba/toc.html
+
+
+
+sudo docker run  --name nassmb -it --network=host -v /var/fpwork/HDDisk:/var/fpwork/HDDisk -d dperson/samba \
+            -u "nas;abcdef" \
+            -S \
+            -W \
+            -s "photoVideos;/var/fpwork/HDDisk/PhotoVideos;yes;no;yes" \
+            -s "share;/var/fpwork/HDDisk/share;yes;no;yes" \
+            -s "影视;/var/fpwork/HDDisk/影视;yes;no;yes"

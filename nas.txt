@@ -1,0 +1,45 @@
+samba config 1
+https://www.cnblogs.com/zoulongbin/p/7216246.html
+samba config 2
+https://www.cnblogs.com/zoulongbin/p/7229004.html
+
+https://www.tecmint.com/install-samba-on-ubuntu-for-file-sharing-on-windows/     testparm
+
+
+https://www.samba.org/samba/docs/current/man-html/smb.conf.5.html
+
+
+ 
+-S smbprotocol 1	    
+
+
+https://hub.docker.com/r/dperson/samba
+
+below command is ok for winxp!!!
+-S
+sudo docker run -it --network=host -d dperson/samba -S \
+            -s "public;/share"	
+
+
+sudo docker run -it --network=host -d -v /var/fpwork/aria2_downloads:/share dperson/samba -S \
+            -s "public;/share" 
+
+sudo docker run -it --network=host -d -v /var/fpwork/aria2_downloads:/share dperson/samba  -S \
+            -u "example1;badpass" \
+            -u "example2;badpass" \
+            -s "public;/share" \
+            -s "users;/srv;no;no;no;example1,example2" \
+            -s "example1 private share;/example1;no;no;no;example1" \
+            -s "example2 private share;/example2;no;no;no;example2"
+
+win10 access smbv1(winxp's smb version)
+https://www.windowscentral.com/how-access-files-network-devices-using-smbv1-windows-10
+
+sudo docker run -it --network=host -d -v /var/fpwork/aria2_downloads:/share -v /var/fpwork/smb:/etc/samba dperson/samba  -S \
+            -s "public;/share" 	    
+read only = no
+
+then try to use in /etc/samba/smb.conf
+   client max protocol = NT1
+   server max protocol = NT1
+could access it

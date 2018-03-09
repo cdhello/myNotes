@@ -1,0 +1,253 @@
+每天5分钟玩转 OpenStack
+1
+介绍系统文章的目的，写法，受众，内容等。
+
+2 虚拟化
+提供虚拟机的软件叫做Hypervisor。分两种。一种是hypervisor做为OS运行在裸机上，一般是由linux定制。Xen和ESXi（VMware公司）属于这个类型。另一种运行在操作系统上，KVM、VirtualBox 和 VMWare Workstation 都属于这个类型。
+KVM（Kernel-Based Virtual Machine），其有一个内核模块kvm.ko用于管理虚拟CPU和MEM。而存储和网络设备等IO虚拟化交给Linux内核和Qemu实现。
+Libvirt是KVM的管理工具。也可以管理Xen和virtualBox等。Openstack底层也使用Libvirt。其包含后台程序libvirtd,API库和命令行virsh这三部分。libvirtd接收处理API请求；用户可以使用API库开发工具，如图形KVM工具virt-manager；virsh就是命令行。
+
+3 KVM实验环境 http://www.cnblogs.com/CloudMan6/p/5240770.html
+
+这一节讲述KVM，QEMU的安装。
+$ sudo apt-get install qemu-kvm qemu-system libvirt-bin virt-manager bridge-utils vlan
+
+就是安装这些软件
+qemu-kvm
+qemu-system     这两个是qemu kvm相关，提供CPU MEM IO虚拟化
+
+libvirt-bin     这个是Libvirt
+virt-manager    使用libvirt API的图形管理工具。命令行敲这个可调出GUI窗口。
+
+bridge-utils    kvm基于Linux bridge实现网络虚拟化。
+vlan
+
+
+https://zhidao.baidu.com/question/536621740.html
+Qemu:
+是一个完整的可以单独运行的软件，它可以用来模拟机器，非常灵活和可移植。它主要通过一个特殊的'重编译器'将为特定处理器编写二进制代码转换为另一种。（也就是，在PPCmac上面运行MIPS代码，或者在X86 PC上运行ARM代码）
+KQemu:
+当源和目标代码有同样的架构的时候（就像最普通的情况 x86运行在x86上面），同样需要解析代码去出去任
+何'特权指令'并且把它们替换为上下文转换。为了尽量使这个过程有效，有个内核模块KQemu处理这个事情。
+作为一个内核模块，KQemu仅仅需要替换最底层的ring0-only指令。在这个情况下，Qemu仍然为模拟的机器分配所有的RAM并且加载代码。不同的是，KQemu不需要重新编译代码，它仅仅调用KQemu去扫描/打补丁/执行。所有外围的硬件仿真是在Qemu中做的。
+由于大部分代码都是没有变换的，但是KQemu还是需要转换ring0代码（VM内核的绝大部分代码），所以性能仍然不好。
+KVM:
+KVM包括很多部件：首先，它是一个Linux内核模块（现在包括在主线中）用于转换处理器到一种新的用户 （guset）模式。用户模式有自己的ring状态集合,但是特权ring0的指令会陷入到管理器(hypervisor)的代码。由于这是一个新的处理器执行模型，代码不需要任何的改动。
+除了处理器状态转换，这个内核模块同样处理很小一部分低层次的模拟，比如MMU注册（用于管理VM）和一部分PCI模拟的硬件。
+在可预见的未来，Qemu团队专注于硬件模拟和可移植性，同时KVM团队专注于内核模块（如果某些部分确实有性能提升的话，KVM会将一小部分模拟代码移进来）和与剩下的用户空间代码的交互。
+kvm-qemu可执行程序像普通Qemu一样：分配RAM,加载代码，不同于重新编译或者调用callingKQemu，它创建了一个线程（这个很重要）；这个线程调用KVM内核模块去切换到用户模式，并且去执行VM代码。当遇到一个特权指令，它从新切换会KVM内核模块，该内核模块在需要的时候，像Qemu线程发信号去处理大部分的硬件仿真。
+这个体系结构一个比较巧妙的一个地方就是客户代码被模拟在一个posix线程，这允许你使用通常Linux工具管理。如果你需要一个有2或者4核的虚拟机，kvm-qemu创建2或者4个线程，每个线程调用KVM内核模块并开始执行。并发性（若果你有足够多的真实核）或者调度（如果你不管）是被通用的Linux调度器，这个使得KVM代码量十分的小
+当一起工作的时候，KVM管理CPU和MEM的访问，QEMU仿真硬件资源（硬盘，声卡，USB，等等）当QEMU单独运行时，QEMU同时模拟CPU和硬件。
+egrep -o '(vmx|svm)' /proc/cpuinfo 
+
+4 启动第一个 KVM 虚机 http://www.cnblogs.com/CloudMan6/p/5249270.html
+使用 virt-manager 创建并启动 KVM 虚拟机。
+教程中没有文字说明镜像要放在/var/lib/libvirt/images/才能启动。不知道什么原因（见第7节）。
+
+virsh help
+virsh list --all命令行查看虚拟机，不加--all只显示running的
+virsh start xxx
+virsh shutdown xxx
+virsh reset xxx
+user:cirros password:cubswin:)
+进入超级模式 sudo su -
+
+如果virsh有下面这个错误（virt-manager肯定同时存在类似的提示）
+error: failed to connect to the hypervisor
+error: no valid connection
+error: Failed to connect socket to '/usr/local/var/run/libvirt/libvirt-sock': No such file or directory
+查看libvirt进程是否启动 ps -le | grep libvirt*  如果没有启动，那么上面的错误就是这个原因
+启动libvirt进程  libvirtd  -d  
+
+5 远程管理 KVM 虚机
+virt-manager远程管理KVM虚拟机。一是被管理方的Libvirt修改配置文件来使能被管理。二是virt-manager处理添加被管理方。
+
+6 CPU 和内存虚拟化原理
+每个运行的虚拟机在宿主机中就是一个qemu-kvm进程，该进程会为该虚拟机每个CPU创建一个线程。
+内存虚拟化描述比较简单
+为了在一台机器上运行多个虚拟机，KVM 需要实现 VA（虚拟内存） -> PA（物理内存） -> MA（机器内存）直接的地址转换。
+虚机 OS 控制虚拟地址到客户内存物理地址的映射 （VA -> PA），但是虚机 OS 不能直接访问实际机器内存，因此 KVM 需要负责映射客户物理内存到实际机器内存 （PA -> MA）
+
+
+7 KVM 存储虚拟化
+KVM 的存储虚拟化通过Storage Pool和Volume来管理。Storage Pool有多种类型。
+storage Pool由/etc/libvirt/storage中的xml定义。
+第4节中的/var/lib/libvirt/images/是目录型的Storage Pool，里面一个文件就是一个volume。
+
+virsh pool-list --all 查看storage pool
+virsh pool-list --help
+
+8 LVM 类型的 Storage Pool
+LVM Logical Volume Manager
+可以把VG（volume Group）作为一个Storage Pool，VG的LV就是虚拟机的一个volume
+还支持iSCSI，Ceph等多种类型storage pool，但最常用的是dir型的。
+简单说一下LVM: 
+PV（physical volume）硬盘或分区。
+PE（physical extend）默认为4MB的基本块
+VG（volume group）由一个或多个PV组成的整体
+LV（logical volume）从VG中切割出的空间用于创建文件系统
+每个PV分成若干PE块，VG来管理一个或多个PV下所有的PE。在VG上划分若干PE为LV，LV上用来安装FS。
+在不使用LVM的情况下，硬盘或分区上安装FS。
+使用LVM时，硬盘或分区叫做PV，PV划分PE，PV组成VG，VG按PE划成LV，LV上安装FS
+使用LVM的好处是灵活，LV可跨PV（也就是跨硬盘或分区），LV可根据需要扩容或缩容。
+
+http://www.linuxidc.com/Linux/2016-01/127906.htm
+https://www.zhihu.com/question/20448895?from=profile_question_card
+
+9 KVM 网络虚拟化基础
+Linux Bridge 和 VLAN 
+不知道是安装了第3节上哪个软件后，ifconfig会多一个virbr0上面有个ip是192.168.122.1/24
+KVM每启动一个default nat网络配置的虚拟机，就会多一个vnet0，vnet1这种，没有IP，但从mac看，就是Kvm运行OS的eth0，在kvm里会分配一个192.168.122.0/24网段的ip。
+在宿主机使用brctl show可以看vnet0和vnet1挂在一个virbr0上
+bridge name     bridge id               STP enabled     interfaces
+docker0         8000.024252ff7bbf       no
+virbr0          8000.fe5400036a4c       yes             vnet0
+                                                        vnet1
+这个virbr0是怎么生成的，上面的ip是怎么配置上去的。而虚拟机的ip是哪里的DHCP server分配的？
+第11节有描述 
+
+
+10 动手实践虚拟网络
+这一节是完成虚拟机与宿主机的桥接配置。
+这种情况下，通过修改/etc/network/interfaces，添加一个新的bridge，配置该bridge作为DHCP client. eth0连在该bridge上。
+然后通过virt-manager让虚拟机的网卡也连到该bridge。就会显示vnetx也连到bridge上。
+这个逻辑就是eth0是个L2口，连接外面的网络，里面生成一个虚拟L3口给宿主机，虚拟机内部的eth0也在外面以vnetx的形式连到该bridge上。
+
+11 理解 virbr0   http://www.cnblogs.com/CloudMan6/p/5308071.html
+virbr0 是 KVM 默认创建的一个 Bridge，其作用是为连接其上的虚机网卡提供 NAT 访问外网的功能。
+virbr0 默认分配了一个IP 192.168.122.1，并为连接其上的其他虚拟网卡提供 DHCP 服务。
+
+cat /var/lib/libvirt/dnsmasq/default.leases 显示dhcp的在用client
+
+/var/lib/libvirt/network/default.xml在这个文件中既有上述的.1IP，又有DHCP Pool
+/var/lib/libvirt/dnsmasq/default.conf这个文件中也有DHCP POOL
+但如果修改上述这两个文件，PC重启后会恢复
+
+
+/etc/libvirt/qemu/networks/default.xml 这个文件既有iP也dhcp Pool，修改这个文件，PC重启后生效。看来前面的两个文件是由这个软件生成的。
+但libvrit-bin 服务重启不生效。
+
+service --status-all | grep vir
+service libvirt-bin restart
+
+12 Linux 如何实现 VLAN http://www.cnblogs.com/CloudMan6/p/5313994.html
+
+用了下面的解决方案，号称Vnet1，vnet2，eth0.10，eth0.20接到vlan的access口上，eth0是个trunk口
+
+
+ vnet1---bridge---eth0.10----+----eth0.20---bridge---vnet2
+         vlan10              |              vlan20
+                             |
+                             |
+                           eth0
+
+
+把eth0叫母设备，eth0.10，eth0.20叫子设备。
+我觉得把下面的框理解成一个vlan交换机就行了，eth0.10和0.20分别是vlan10和vlan20的access口，eth0是permitvlan10和20的trunk口。而两个bridge就是两个没有vlan功能的交换机或者hub。
+
+                       +--------+
+          +------+     |        |      +------+
+   vnet1--+bridge+--eth0.10   eth0.20--+bridge+--vnet2
+          +------+     |        |      +------+
+                       +--eth0--+
+                            |
+                            |
+
+13 动手实践 Linux VLAN http://www.cnblogs.com/CloudMan6/p/5326737.html
+
+
+通过修改 /etc/network/interfaces，在宿主机中配置一个下面的网络
+
+                 +--------+
+    +------+     |        |      +------+
+    |bridge+--eth0.10   eth0.20--+bridge|
+    +------+     |        |      +------+
+                 +--eth0--+
+                      |
+                      |
+    
+再通过 virt-manager 中将两个VM的虚拟网口分别挂到两个bridge上，然后在VM内部手动配置IP，当然这两个IP是隔离的。
+
+
+14 云计算与openstack  http://www.cnblogs.com/CloudMan6/p/5334760.html
+
+IaaS（Infrastructure as a Service）提供的服务是虚拟机。AWS、Rackspace、阿里云等
+PaaS（Platform as a Service）提供的服务是应用的运行环境和一系列中间件服务（比如数据库、消息队列等）。Google App Engine、IBM BlueMix 等
+SaaS（Software as a Service）提供的是应用服务。 Google Gmail、Salesforce 等
+
+openstack提供的属于 IaaS
+
+15 openstack架构 http://www.cnblogs.com/CloudMan6/p/5340622.html
+！Nova：管理计算资源，比如VM分配到哪个物理机上。
+！Neutron：管理网络。           
+！Glance：管理镜像
+！Cinder：管理存储，应该是8中的Storage Pool和volume
+！Keystone：提供认证和权限管理服务。OpenStack上所有操作都会Keystone 的审核。
+  Ceilometer：提供 OpenStac k监控和计量服务，为报警、统计或计费提供数据。
+  Horizon：为 OpenStack 用户提供一个 Web 的自服务 Portal。
+  Swift：提供对象存储服务。VM 可以通过 RESTful API 存放对象数据。作为可选的方案，Glance 可以将镜像存放在 Swift 中；Cinder 也可以将 Volume 备份到 Swift 中。
+前5个重要，最后一个对象存储服务看不懂，全抄过来了。
+
+16 搭建 OpenStack 实验环境 http://www.cnblogs.com/CloudMan6/p/5350536.html
+
+物理机分为控制节点、网络节点、存储节点、计算节点。
+规划环境，两个节点，其一叫devstack-controller,是四节点功能合一，另一叫devstack-compute只充当计算节点。
+环境中规划了三个网络。两个节点间使用两个，192.168.104.0/24和10.10.10.0/24，前者用来做openstack之间各服务的通信（Management Network），后者用做各VM间的通信VM（Tenant）Network。devstack-controller还有一个External Network，连接到外部。。
+
+17 部署 DevStack http://www.cnblogs.com/CloudMan6/p/5357273.html
+装机。 介绍了一个工具screen。
+装虚拟机时，虚拟机浏览器设置代理后才可上网。apt-get不可用。需要update。
+export http_proxy=http://10.144.1.10:8080 这是临时设置代理的方式。设置好后，进行apt-get update
+长期设置在 /etc/apt/apt.conf中添加Acquire::http::Proxy "http://yourproxyaddress:proxyport";
+或者把临时的命令输入到自动执行的脚本中去。
+
+装好一个VM后把image文件复制下，创建另一个使用复制出来的就可以。
+通过echo "vm1Compute"  > /etc/hostname 写入配置文件再重启，可以修改计算机主机名。
+
+raw->qcow2
+ qemu-img convert -f raw -O qcow2 /var/lib/libvirt/images/controller.img ./controller.img
+mount -t cifs -o username=lrlz,password=qweasd, //192.168.125.173/lrlz /mnt/tmp 
+
+iptables -t nat -A PREROUTING --dst 10.140.163.91 -p tcp --dport 26688 -j DNAT --to-destination 192.168.125.69:22
+iptables -t nat -A PREROUTING --dst 10.140.163.91 -p tcp --dport 26689 -j DNAT --to-destination 192.168.125.173:22
+iptables -I FORWARD -m state -d 192.168.125.0/24 --state NEW,RELATED,ESTABLISHED -j ACCEPT           
+宿主机上做以上设置可以将主机的26688和26689分别映射到两台虚拟机的ssh端口
+
+
+安装git
+
+          https://github.com/openstack-dev/devstack
+git clone https://git.openstack.org/openstack-dev/devstack -b stable/liberty
+
+git clone https://github.com/openstack-dev/devstack -b stable/newton
+
+http://www.cnblogs.com/CloudMan6/default.html?page=20
+
+
+18 理解 Keystone 核心概念 http://www.cnblogs.com/CloudMan6/p/5365474.html
+19 通过例子学习 Keystone
+
+20 理解 Glance  http://www.cnblogs.com/CloudMan6/p/5384923.html
+21 创建IMage
+22 如何使用openstack CLI
+
+23  理解 Nova 架构 http://www.cnblogs.com/CloudMan6/p/5410447.html
+
+
+
+65 http://www.cnblogs.com/CloudMan6/p/5709636.html Neutron 功能概述
+66 http://www.cnblogs.com/CloudMan6/p/5716947.html 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
