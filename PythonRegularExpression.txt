@@ -1,0 +1,71 @@
+﻿1 import re
+2 re.compile() 
+    compile(pattern, flags=0)
+    Compile a regular expression pattern, returning a pattern object.
+        SOME OF THE FUNCTIONS in this module takes flags as optional parameters:
+        I  IGNORECASE  Perform case-insensitive matching.
+        L  LOCALE      Make \w, \W, \b, \B, dependent on the current locale.
+        M  MULTILINE   "^" matches the beginning of lines (after a newline)
+                       as well as the string.
+                       "$" matches the end of lines (before a newline) as well
+                       as the end of the string.
+        S  DOTALL      "." matches any character at all, including the NEWLINE.    ！！！！！！ if  no this flag, [\s\S] matches any character at all, including the NEWLINE
+        X  VERBOSE     Ignore whitespace and comments for nicer looking RE's.
+        U  UNICODE     Make \w, \W, \b, \B, dependent on the Unicode locale.
+
+3 reobj.search(line)
+
+
+
+import re
+NameOfSrcFile = "SYSLOG_031.LOG"
+srcfile = open(NameOfSrcFile, "r")
+
+NameOfDstFile = NameOfSrcFile+".csv"   
+outputfile = open(NameOfDstFile,"w")
+
+#MacHsSchd3 VIP/MACHS/GEN, HandleAckNack: thisAckNack:3, internalPrioQId:6, userid:16@cell:6
+reobj = re.compile('MacHsSchd(\d+) VIP/MACHS/GEN, HandleAckNack: thisAckNack:(\d+), internalPrioQId:(\d+), userid:(\d+)@cell:(\d+).')
+
+outputfile.write("core,ack/nack,qid,userid,cellid\n");
+line = srcfile.readline()
+while line:
+    res = reobj.search(line)
+    if res:  
+        outline = ""
+        #outline += line
+        outline += res.group(1)+","
+        outline += res.group(2)+","
+        outline += res.group(3)+","
+        outline += res.group(4)+","
+        outline += res.group(5) + "\n"
+        outputfile.write(outline);
+
+    line = srcfile.readline()
+
+outputfile.close()
+srcfile.close()
+
+
+不编译的写法：
+import re
+NameOfSrcFile = "tb.txt"
+srcfile = open(NameOfSrcFile, "r")
+
+NameOfDstFile = NameOfSrcFile+".csv"   
+outputfile = open(NameOfDstFile,"w")
+
+line = srcfile.readline()
+while line:
+                    #check_decoder_counters pus0_tb_stat: 8818, pus0_tb_failed_stat: 6
+    res = re.search("check_decoder_counters pus0_tb_stat: (\d+), pus0_tb_failed_stat: (\d+)", line)
+    if res:  
+        outline = ""
+        outline += res.group(1)+","
+        outline += res.group(2) + "\n"
+        outputfile.write(outline);
+
+    line = srcfile.readline()
+
+outputfile.close()
+srcfile.close()

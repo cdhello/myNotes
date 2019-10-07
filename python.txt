@@ -17,7 +17,7 @@ sturct pack成二进制流
 # in struct.Struct()
 # I = u32 H=u16 B=u8 Q=u64,
 # and < is little-endian, > is Big-endian, ! is Network order
-
+ 
 import struct
 import binascii
 values = (1, 3, 89)
@@ -65,3 +65,20 @@ import py2exe
 setup(windows=['beamForming.py'])
 
 python setup.py py2exe 就会打包
+
+
+类变量，成员变量。
+在类内部，用类名字访问就是定义在函数外部的就是类变量，用self访问就是实例变量
+类，实例没有的变量也可以当左值。
+
+在类外部，用类名字访问类变量，用对象名字访问实例变量。
+如果实例没有与类变量同名的变量，也可以用实例名来读取类变量。但这太危险了。
+
+
+
+import sys
+out = sys.stdout
+sys.stdout = open("re.help.txt", "w")
+help("re")
+sys.stdout.close()
+sys.stdout = out # reset stdout

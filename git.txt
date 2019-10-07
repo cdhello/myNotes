@@ -53,7 +53,7 @@ git push origin HEAD  这个也可以推送，当前
 git reset --soft 到要合并的第一个commit前的一个commit，这时候head指向那个节点，而代码没变
 重新git commit (不用add)
 git push --force，强制推送，就合并了
-git add 以后，使用git commit --amend 把改动合并到最近的一次commit，复用前一次的commit message
+git add 以后，使用git commit --amend 把改动合并到最近的一次commit，复用前一次的commit message (git commit --amend --reset-author)
  远端的branch删除以后，git branch -a 仍然可以看到，git remote prune origin可以删除这些无效的本地远端mapping
 git rebase origin/xx.... 从xx rebase过来？
 
@@ -65,6 +65,9 @@ git cherry-pick --continue
 rebase、merge有冲突时，应该也是解决好以后git add .再git rebase/merge --continue
 
 远端如果发生的改变与本地有冲突，可以git fetch，然后 git reset --hard到远端的那个commit
+
+
+
 
 
 

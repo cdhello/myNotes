@@ -35,12 +35,20 @@ lcd是控制本地目录。
 
 SecureCRT
 Alt+enter            全屏及恢复
-Ctrl+A  <-> Ctrl+E   光标到行首行尾
-Ctrl+B  <-> Ctrl+F   光标前移后移，等同于←和→
-Ctrl+D  <-> Ctrl+H   光标前删后删，等同于delete和backspace
-Ctrl+P  <-> Ctrl+N   前翻后翻，等同于↑和↓
-Ctrl+M  ==  Ctrl+J   等同于回车
-Ctrl+W <-> Ctrl+k ，Ctrl+U  删除光标前、后、本行
+
+下面的其实是终端的功能
+Ctrl+m  ==  Ctrl+j   等同于回车
+Ctrl+w/u Ctrl+k  删除光标前至行首所有字符、删除光标后至行尾所有字符
+Ctrl+d  <-> Ctrl+h   光标前删后删，等同于delete和backspace
+Ctrl+p  <-> Ctrl+n   前翻后翻，等同于↑和↓
+Ctrl+a  <-> Ctrl+e   光标到行首行尾
+Ctrl+b  <-> Ctrl+f   光标前移(backward)后移(forward)，等同于←和→
+Alt+b   <-> Alt+f    光标前移一个单词或后移一个单词。对于secureCRT,默认ALT用来使用SecureCRT的工具栏。如果要使用此功能需要按sesson打开ALT发送。
+
+
+
+
+
 
 
 

@@ -1,0 +1,24 @@
+[root@EarnestJaunty-VM ~]# bash <(curl -sL https://raw.githubusercontent.com/hijkpw/scripts/master/centos_install_v2ray.sh) info
+#############################################################
+#         CentOS 7/8 v2ray 一键安装脚本                     #
+# 网址: https://www.hijk.pw                                 #
+# 作者: hijk                                                #
+#############################################################
+
+============================================
+ v2ray运行状态：正在运行
+ v2ray配置文件：/etc/v2ray/config.json
+
+v2ray配置信息：               
+ IP(address):  107.174.192.206
+ 端口(port)：23561
+ id(uuid)：955f6f1d-c5f6-40c7-a4a1-d94d2e66691d
+ 额外id(alterid)： 51
+ 加密方式(security)： auto
+ 传输协议(network)： tcp
+
+vmess链接: vmess://eyAidiI6IjIiLCAicHMiOiIiLCAiYWRkIjoiMTA3LjE3NC4xOTIuMjA2IiwgInBvcnQiOiIyMzU2MSIsICJpZCI6Ijk1NWY2ZjFkLWM1ZjYtNDBjNy1hNGExLWQ5NGQyZTY2NjkxZCIsICJhaWQiOiI1MSIsICJuZXQiOiJ0Y3AiLCAidHlwZSI6Im5vbmUiLCAiaG9zdCI6IiIsICJwYXRoIjoiIiwgInRscyI6IiIgfQ==
+[root@EarnestJaunty-VM ~]# 
+
+
+mhuA6XdTnE1H8579dG

@@ -1,0 +1,11 @@
+
+1 °²×° https://www.pygame.org/wiki/GettingStarted
+python -m pip install -U pygame --user
+To see if it works, run one of the included examples:
+
+python -m pygame.examples.aliens
+
+
+
+
+C:\Users\dongcao\AppData\Roaming\Python\Python27\site-packages\pygame\examples

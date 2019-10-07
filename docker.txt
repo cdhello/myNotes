@@ -20,7 +20,7 @@ docker rmi 删除镜像
 3
 docker inspect 可以inspect所有Docker Objects，比如对于container会显示volume等
 
-
+sudo docker update --restart=always nassmb
 sudo docker run -it --rm busybox
 
 容器生态系统 - 每天5分钟玩转容器技术（2） https://www.cnblogs.com/CloudMan6/p/6706546.html

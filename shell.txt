@@ -56,6 +56,13 @@ find -maxdepth 最深查找层次，为1时就是查找当前目录
 find .  \( -name "*.c"  -or  -name "*.h"  \) 找出C文件和H文件  
 xargs --null以NULL为分隔处理输入.比如依次处理每个文件，但文件名中有空格，就可以find输出时-print0，xargs再--null
      -0是不是和前一个一样
+
+xargs 多参数
+find . -name "*.log" -print0 | xargs -0 -t -I {} mv {} ./mylogs/
+该命令会把当前所有的.log文件移动到 ./mylogs文件夹。
+其中 -I {} 表示把当前处理的参数用{}表示，这样后续的命令可以用{}来处理。
+-t 表示打印当前运行的命令。
+     
 svn status | grep -e ^[M\!] | awk '{print $2}' | xargs svn revert ; svn up
 ls | xargs rm -rf ; svn up
 ps -ef | grep ^dongcao | grep -v grep | grep dsp_wn7.0_hsdpa_mt | awk '{print $2}' | xargs kill
@@ -68,11 +75,17 @@ sort
 wc -l lines -w words -m byte num,memory?
 scp core_6287 root@192.168.253.16:/tmp   把本地的core_6287拷贝到16的tmp目录下，用户名是root，然后提示输入密码
                                         源或目的都可以是本地或远端。如果没有前面的root@，会提示用户名密码
+scp -P 20000  ore_6287 root@192.168.253.16:/tmp  
+
 route add -net 192.168.255.0/24 gw 192.168.253.16 添加路由
 route del -net 192.168.255.0/24 gw 192.168.253.16 删除路由
 route add -host 100.100.100.100 gw 10.140.163.54  host，可以把掩码长度省掉了。
 
 tcpdump -i rio0m3 icmp -v    -i rio0m3抓取这个接口的包  -v 详细decode
+tcpdump -i eth0 tcp port 22只抓tcp 22的包（ssh）
+tcpdump -i eth0 tcp port 22 -w tcpdump.pcap -C 20  ;保存到文件，20MB(-C)后结束。-c后跟报文个数
+https://www.cnblogs.com/ggjucheng/archive/2012/01/14/2322659.html
+
 加个-w capt.cap 可以把内容保存到该文件，该文件可以用wireshark打开
 echo 1 > /proc/sys/net/ipv4/ip_forward                   #使能Linux报文转发
 echo 1 > /proc/sys/net/ipv4/conf/all/proxy_arp           #使能代理ARP。代理ARP简单来说就是，L3设备A收到ARP请求，只要请求IP是
@@ -87,7 +100,7 @@ probe tg3 可以快速地reload网卡驱动。
 4 mii-tool ethx 可以查看自协商以后实际运行的速度。ethtool ethx显示的是支持的最大速度。
 
 tar zcvf ccs-rt.tgz opt usr     把当前目录下的opt, usr添加到压缩文件ccs-rt.tgz。其中opt, usr都可以是文件夹
-tar zxvf ccs-rt.tgz                  把ccs-rt.tgz解压到当前文件夹
+tar zxvf ccs-rt.tgz                  把ccs-rt.tgz解压到当前文件夹  tar zxvf ccs-rt.tgz  -C xxx，解压到xxx，xxx需要提前创建好。
 tar xvf xxx.tar把该tar文件解包
 tar -Jxf  xxx.txz
 
@@ -166,6 +179,8 @@ curl -u atf5guser:atf5guser -T get_releaseinf.sh ftp://10.140.14.179/Users/$USER
 
 curl -u atf5guser:atf5guser ftp://10.140.32.35/Users/$USER/packagename/5GL1SW.tgz -o xxx.tgz
 
+使用curl下载
+curl ftp://toor4nsn:oZPS0POrRieRtu@192.168.186.101/tmp/j.txt  -o  /tmp/j.txt
 
 欧洲的服务器上下载这个文件1s几十MB
 wget http://releases.ubuntu.com/18.04.1/ubuntu-18.04.1-desktop-amd64.iso
@@ -173,30 +188,29 @@ wget http://releases.ubuntu.com/18.04.1/ubuntu-18.04.1-desktop-amd64.iso
 
 
 https://blog.csdn.net/u013401853/article/details/54933188/ 非分区做一个限制大小的文件夹
-# 生成一个10M的文件
+dd if=/dev/zero of=disk.img bs=1M count=10 # 生成一个10M的文件
+losetup /dev/loop0 disk.img # 把生成的文件虚拟为块设备 losetup: loopback device setup, set up and control loop devices. https://www.tldp.org/LDP/sag/html/dev-fs.html
+mkfs.ext4 /dev/loop0 # 格式化设备
+mount disk.img testdir # 挂载
+umount testdit # 卸载
+losetup -d /dev/loop0 # 卸载loop设备与文件的关联
 
-dd if=/dev/zero of=disk.img bs=1M count=10
-
-# 把生成的文件虚拟为块设备 losetup: loopback device setup, set up and control loop devices. https://www.tldp.org/LDP/sag/html/dev-fs.html
-
-losetup /dev/loop0 disk.img
-
-# 格式化设备
-
-mkfs.ext4 /dev/loop0
-
-# 挂载
-mount disk.img testdir
-
-# 卸载
-
-umount testdit
-
-# 卸载loop设备与文件的关联
-
-losetup -d /dev/loop0
+smartmontools是一个人查看硬盘使用情况的工具
 
 
 LINUX disk-partitions tool
 https://www.binarytides.com/linux-command-check-disk-partitions/
 
+IDE/SATA/SCSI
+partition/volume/disk
+
+inode
+
+
+unrar l *.rar  /unrar v *.rar  查看rar包中的内容
+unrar t *.rar 测试rar包是否能解压成功：
+unrar e *.rar 解压到当前文件夹
+unrar x *.rar /tmp 解压到指定文件夹
+
+
+7z x xxx.7z  解压xxx.7z
