@@ -22,6 +22,7 @@ docker inspect 可以inspect所有Docker Objects，比如对于container会显示volume等
 
 sudo docker update --restart=always nassmb
 sudo docker run -it --rm busybox
+--rm退出就删除
 
 容器生态系统 - 每天5分钟玩转容器技术（2） https://www.cnblogs.com/CloudMan6/p/6706546.html
 
@@ -49,9 +50,10 @@ curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://f1361db2
 
 
  
-sudo docker run -d -p 8080:80 httpd  
+sudo docker run -d -p 8080:80 httpd   
 -p是端口映射，8080是host端口，80是容器的端口。因为我执行这个时，host跑了一个别的http服务，所以如果80:80会因为冲突而失败
 -d是起来后detach，后台运行
+
 
 sudo docker ps 显示运行的容器，加个-a可以显示已经退出的容器，停止的可以再用sudo docker start 弄起来
 sudo docker stop id 停止运行的容器，id只输入几位就可以

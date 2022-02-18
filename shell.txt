@@ -84,6 +84,7 @@ route add -host 100.100.100.100 gw 10.140.163.54  host£¬¿ÉÒÔ°ÑÑÚÂë³¤¶ÈÊ¡µôÁË¡£
 tcpdump -i rio0m3 icmp -v    -i rio0m3×¥È¡Õâ¸ö½Ó¿ÚµÄ°ü  -v ÏêÏ¸decode
 tcpdump -i eth0 tcp port 22Ö»×¥tcp 22µÄ°ü£¨ssh£©
 tcpdump -i eth0 tcp port 22 -w tcpdump.pcap -C 20  ;±£´æµ½ÎÄ¼ş£¬20MB(-C)ºó½áÊø¡£-cºó¸ú±¨ÎÄ¸öÊı
+tcpdump -i etha01 src host 192.168.253.38 -x  ×¥È¡Ô´µØÖ·Îª192.168.253.38µÄ±¨ÎÄ²¢´òÓ¡
 https://www.cnblogs.com/ggjucheng/archive/2012/01/14/2322659.html
 
 ¼Ó¸ö-w capt.cap ¿ÉÒÔ°ÑÄÚÈİ±£´æµ½¸ÃÎÄ¼ş£¬¸ÃÎÄ¼ş¿ÉÒÔÓÃwireshark´ò¿ª
@@ -133,6 +134,11 @@ sed -e 's/aaa/bbb/'  aa.c aaaÌæ»»³Ébbb
 sed -e 's/\/\*.*\*\///'  aa.c  /*xxxxxx*/Ìæ»»³É¿Õ,ÖĞ¼äµÄ.´ú±íÈÎÒâ×Ö·û£¬.ºóµÄ*´ú±íÈÎÒâ¸ö
 sed -e 's/\/\*.\{5\}\*\///'  aa.c °Ñ/*xxxxx*/Ìæ»»³É¿Õ£¬/*ºÍ*/¼äÓĞ5¸öÈÎÒâ×Ö·û
 sed -e '/^\w*$/d' É¾³ıËùÓĞÖ»ÓĞtabºÍ¿Õ¸ñµÄĞĞ
+find -name xx.conf | xargs sed -i -e '/^rd_open_loop_.*$/d'  ÕÒµ½ËùÓĞxx.conf²¢°ÑÀïÃæÒÔrd_open_loop_¿ªÍ·µÄĞĞÉ¾³ı¡£ -iµÄÒâË¼ÊÇ±à¼­Ô´ÎÄ¼ş
+find . -name 'xx.conf' | xargs sed -i '$a\who is your daddy'   ¸øËùÓĞÕÒµ½µÄÎÄ¼şÀï×îºó¼ÓÒ»ĞĞ¡°who is your daddy¡±
+
+sed pusch_receive_req.conf -i -e 's/319881216/0/' °ÑconfÖĞµÄËùÓĞ319881216Ìæ»»»»³É0
+find -name "*.conf" | xargs sed  -i -e 's/0x02110000/0/'
 
 sed  -e 's/\/\*.*\*\///g'  -e 's/\/\/.*$//' | sed -e 's/\/\*/\n\/\*/'  -e 's/\*\//\*\/\n/'  | sed -e '/\/\*/,/\*\//d' -e '/^\s*$/d'
 
@@ -146,7 +152,7 @@ sed  -e 's/\/\*[^\*\/]*\*\///g'  ÕâÑù²ÅÕıÈ·£¬·ñÔò»á°Ñ/*aaa*/ a=b; /*aaa*/ÕâÖÖÉ¾³
 find . \( -name "*.c" \) -o \( -name "*.h" \) -o \( -name "*.cpp" \) -o \( -name "*.hpp" \)  |  xargs sed  -e 's/\/\*.*\*\///g'  -e 's/\/\/.*$//' | sed -e 's/\/\*/\n\/\*/'  -e 's/\*\//\*\/\n/'  | sed -e '/\/\*/,/\*\//d' -e '/^\s*$/d' | wc -l
 Í³¼Æ·Ç¿Õ·Ç×¢ÊÍ
 
-
+sed -e '/^\s*$/d' -i *txt É¾³ıÒ»¸öÎÄ¼şÀïµÄ¿ÕĞĞ¡£»òÕßÉ¾³ıÁ½¸öÁ¬Ğø»»ĞĞ·ûµÄÒ»¸ö¡£
 
 DNSÊ§Ğ§£¬¿ÉÒÔÊÖ¶¯Ìí¼Óhost½âÎö¡£ ÔÚ/etc/hostsÀïÌí¼Ó"ip url"
 

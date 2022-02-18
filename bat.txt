@@ -80,3 +80,8 @@ pause>nul
 
 
 certutil -hashfile filename MD5计算该文件的MD5序列。linux的命令为md5sum filename 
+
+
+参数传递 %0是自己，%1就是第一个参数
+explorer.exe /select, %1
+
